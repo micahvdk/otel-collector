@@ -51,6 +51,11 @@ The collector is now running and listening for OTLP metrics on:
 - `localhost:4317` — gRPC
 - `localhost:4318` — HTTP
 
+If you would like to enable debug logging, pass that flag to the container as well:
+```bash
+ -e DEBUG=true \
+```
+
 ## Docker Compose (evaluation / local testing)
 
 A `docker-compose.yaml` is included for convenience when evaluating the collector locally. It is not recommended for production deployments.
