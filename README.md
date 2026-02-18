@@ -23,7 +23,7 @@ This is the recommended way to run the collector in production.
 **1. Clone this repository**
 
 ```bash
-git clone https://github.com/multitudes/otel-collector.git
+git clone https://github.com/multitudesco/otel-collector.git
 cd otel-collector
 ```
 
