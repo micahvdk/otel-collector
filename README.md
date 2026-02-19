@@ -1,10 +1,12 @@
 # Multitudes OTel Collector
 
-A custom [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/) that runs in your network, aggregates AI usage metrics from your engineers, and sends them to Multitudes — without raw data ever leaving your environment.
+A custom [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/) that runs in your network, aggregates AI usage metrics from your engineers, and sends them to Multitudes.
+
+This approach means that raw data does not leave your environment.
 
 ## How it works
 
-Tools like Claude Code emit raw OTLP metrics as engineers work. The Multitudes OTel Collector receives those metrics, aggregates them by user over a time window, and sends only the aggregated totals to Multitudes. Individual activity data stays inside your network.
+Tools like Claude Code emit raw OTLP metrics as engineers work. The Multitudes OTel Collector receives those metrics, aggregates them by user over a time window, and sends the aggregated totals to Multitudes. Individual activity data stays inside your network.
 
 ```
 [Claude Code / AI tools] → [Multitudes OTel Collector] → [Multitudes]
@@ -14,11 +16,9 @@ Tools like Claude Code emit raw OTLP metrics as engineers work. The Multitudes O
 ## Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/)
-- A Multitudes API token (provided by your Multitudes account team)
+- A Multitudes Integration token (generated from within the Multitudes app)
 
 ## Quick start (Docker)
-
-This is the recommended way to run the collector in production.
 
 **1. Clone this repository**
 
@@ -41,12 +41,13 @@ docker run -d \
   --restart unless-stopped \
   -e MULTITUDES_INTEGRATION_TOKEN=your_bearer_token_here \
   -e MULTITUDES_INTEGRATION_ENDPOINT=https://integrations.multitudes.co/ai/otel \
+  -e MULTITUDES_DEBUG=1 \
   -p 127.0.0.1:4317:4317 \
   -p 127.0.0.1:4318:4318 \
   -p 127.0.0.1:13133:13133 \
   otelcol-multitudes:latest
 
-# To enable verbose debug logging from the aggregation processor, add:
+# To disable verbose debug logging in production, omit the line above:
 #   -e MULTITUDES_DEBUG=1 \
 ```
 
@@ -56,7 +57,7 @@ The collector is now running and listening for OTLP metrics on:
 
 ## Configuring your AI tools
 
-Each person using Claude Code should enable exporting metrics to the OTLP endpoint. This can be done by configuring a `~/.claude/settings.json` file:
+Each person using Claude Code should enable exporting metrics to the OTLP endpoint. This can be done by configuring a `~/.claude/settings.json` file. This example exports OTLP metrics to the localhost endpoint exposed by the collector running in the Docker container:
 
 ```bash
 {
@@ -65,14 +66,14 @@ Each person using Claude Code should enable exporting metrics to the OTLP endpoi
     "OTEL_METRICS_EXPORTER": "otlp",
     "OTEL_LOGS_EXPORTER": "otlp",
     "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-    "OTEL_EXPORTER_OTLP_ENDPOINT": "http://<endpoint>:4318",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4318",
     "OTEL_METRIC_EXPORT_INTERVAL": "10000"
   },
 }
 
 ```
 
-Replace `http://<endpoint>:4318` with the endpoint configured to expose the otel-collector
+Once the collector is running as a deployed service, replace `http://localhost:4318` with the endpoint that the deployed collector exposes.
 
 
 ## Repository structure
@@ -101,11 +102,11 @@ The collector is configured via environment variables:
 
 ### Aggregation
 
-The collector aggregates metrics by `user.email` over 1-hour windows before sending to Multitudes. This means:
+The collector aggregates metrics by `user.email` over a 5 minute window before sending to Multitudes. This means:
 
 - Raw per-request metrics are never sent externally
 - Only per-user totals per time window are transmitted
-- Network egress is minimal
+- Reduction in network traffic
 
 The aggregation window and other settings can be adjusted in `otel-collector-config.yaml`.
 
