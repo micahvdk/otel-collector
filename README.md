@@ -75,6 +75,8 @@ Each person using Claude Code should enable exporting metrics to the OTLP endpoi
 
 Once the collector is running as a deployed service, replace `http://localhost:4318` with the endpoint that the deployed collector exposes.
 
+### Logging in
+Each person sending Otel metrics should be logged in using their work email. This allows Multitudes to correctly match the incoming metrics to users in Multitudes. 
 
 ## Repository structure
 
@@ -119,6 +121,12 @@ The aggregation window and other settings can be adjusted in `otel-collector-con
 | `4318` | HTTP | OTLP metrics ingestion |
 | `13133` | HTTP | Health check (`/health`) |
 | `55679` | HTTP | zPages diagnostics |
+
+## Deployment 
+
+Deploy the collector onto your infrastructure and expose the required ports for Claude Code users to export metrics to. 
+
+Specific configuration guides for common deployment patterns like ECS Fargate will be coming soon. 
 
 ## Support
 
